@@ -1,63 +1,87 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
 from pathlib import Path
+from datetime import datetime
+
+# ======================================================
+# CONFIGURACIÓN
+# ======================================================
 
 st.set_page_config(
     page_title="Instrumento de Ponderación",
     layout="wide"
 )
 
-st.title("🧬 Instrumento de Ponderación de Variables y Criterios de Severidad")
-st.markdown(
-"""
-Objetivo:
-Recopilar la apreciación de expertos respecto a la importancia relativa de
-variables generales, variables específicas y criterios de severidad.
-"""
+st.title(
+"🧬 Instrumento de Ponderación de Variables y Criterios de Severidad"
 )
 
 EXCEL_FILE="respuestas_ponderacion.xlsx"
 
-# =====================================
+# ======================================================
 # FUNCIONES
-# =====================================
+# ======================================================
+
+def normalizar_pesos(diccionario):
+
+    suma=sum(diccionario.values())
+
+    if suma==0:
+        return None
+
+    normalizados={
+
+        k:round(
+            (v/suma)*100,
+            2
+        )
+
+        for k,v in diccionario.items()
+
+    }
+
+    return normalizados
+
 
 def guardar_respuesta(df):
 
-    path=Path(EXCEL_FILE)
+    archivo=Path(EXCEL_FILE)
 
-    if path.exists():
+    if archivo.exists():
 
-        existente=pd.read_excel(EXCEL_FILE)
+        viejo=pd.read_excel(
+            EXCEL_FILE
+        )
 
-        final=pd.concat(
-            [existente,df],
+        nuevo=pd.concat(
+            [viejo,df],
             ignore_index=True
         )
 
     else:
 
-        final=df
+        nuevo=df
 
-    final.to_excel(
+    nuevo.to_excel(
         EXCEL_FILE,
         index=False
     )
 
 
-# =====================================
-# INFORMACIÓN EVALUADOR
-# =====================================
+# ======================================================
+# EVALUADOR
+# ======================================================
 
-st.header("1️⃣ Información del evaluador")
+st.header(
+"1️⃣ Información evaluador"
+)
 
 col1,col2=st.columns(2)
 
 with col1:
 
     evaluador=st.text_input(
-        "Nombre evaluador"
+        "Nombre"
     )
 
     dependencia=st.text_input(
@@ -71,7 +95,7 @@ with col2:
     )
 
     experiencia=st.selectbox(
-        "Experiencia en vacunas",
+        "Experiencia",
         [
             "0-2 años",
             "3-5 años",
@@ -81,215 +105,416 @@ with col2:
     )
 
 
-respuestas={}
+# ======================================================
+# FINALIDAD
+# ======================================================
 
-# =====================================
+st.header(
+"📘 Finalidad"
+)
+
+st.info("""
+
+Este instrumento tiene como finalidad recopilar la apreciación y experiencia
+de expertos respecto a la importancia relativa de variables generales,
+variables específicas y criterios de severidad asociados a vacunas.
+
+La información recopilada será utilizada como insumo metodológico para apoyar
+la construcción y fortalecimiento de matrices de riesgo y futuros modelos
+probabilísticos orientados a la priorización y evaluación basada en riesgo.
+
+Las respuestas obtenidas no constituyen una evaluación individual de un
+producto o vacuna específica; corresponden a un ejercicio de percepción y
+consenso experto
+
+""")
+
+
+# ======================================================
 # VARIABLES GENERALES
-# =====================================
+# ======================================================
 
-st.header("2️⃣ Variables Generales")
+st.header(
+"2️⃣ Variables Generales"
+)
 
 VG={
 
-"VG1":"¿El registro sanitario ha sido suspendido en los últimos tres años?",
+"A":"Registro suspendido",
 
-"VG2":"¿El registro sanitario ha sido llamado a revisión de oficio en los últimos tres años?",
+"B":"Revisión de oficio",
 
-"VG3":"¿El registro sanitario ha tenido alertas sanitarias en los últimos tres años?",
+"C":"Alertas sanitarias",
 
-"VG4":"¿El registro sanitario ha tenido eventos adversos graves en los últimos tres años?",
+"D":"Eventos adversos graves",
 
-"VG5":"¿El medicamento ha tenido procesos en responsabilidad sanitaria?",
+"E":"Responsabilidad sanitaria",
 
-"VG6":"¿El medicamento presentó riesgo de desabastecimiento?"
+"F":"Desabastecimiento"
+
 }
 
+pesosVG={}
 
-for codigo,pregunta in VG.items():
+for letra,pregunta in VG.items():
 
-    st.subheader(codigo)
+    st.subheader(letra)
 
     st.write(pregunta)
 
-    with st.expander("📘 Definición"):
+    peso=st.number_input(
 
-        st.write(
-        "Definición pendiente por validar con Michael."
-        )
+        "Peso (%)",
 
-    importancia=st.slider(
-        "Nivel de importancia",
-        1,
-        5,
-        3,
-        help="""
-        1=Muy baja
-        2=Baja
-        3=Moderada
-        4=Alta
-        5=Muy alta
-        """,
-        key=f"imp_{codigo}"
+        min_value=0.0,
+
+        max_value=100.0,
+
+        value=0.0,
+
+        key=f"VG{letra}"
+
     )
 
-    confianza=st.selectbox(
-        "Confianza",
-        [
-            "Baja",
-            "Media",
-            "Alta"
-        ],
-        key=f"conf_{codigo}"
+    pesosVG[letra]=peso
+
+
+normalVG=normalizar_pesos(
+    pesosVG
+)
+
+if normalVG:
+
+    st.subheader(
+    "⚖️ Variables Generales normalizadas"
     )
 
-    comentario=st.text_area(
-        "Comentario",
-        key=f"com_{codigo}"
+    st.dataframe(
+        pd.DataFrame({
+
+            "Variable":
+            list(
+                normalVG.keys()
+            ),
+
+            "Peso":
+            list(
+                normalVG.values()
+            )
+
+        })
     )
 
-    respuestas[f"{codigo}_importancia"]=importancia
-    respuestas[f"{codigo}_confianza"]=confianza
-    respuestas[f"{codigo}_comentario"]=comentario
 
-
-# =====================================
+# ======================================================
 # VARIABLES ESPECÍFICAS
-# =====================================
+# ======================================================
 
-st.header("3️⃣ Variables Específicas")
+st.header(
+"3️⃣ Variables Específicas"
+)
 
 VE={
 
-"VE1":"Condiciones almacenamiento verificadas",
+"A":"Condiciones almacenamiento",
 
-"VE2":"Vida útil coincide con artes y certificados",
+"B":"Vida útil",
 
-"VE3":"Artes e inserto coinciden con RS",
+"C":"Artes e inserto",
 
-"VE4":"Existe informe gestión riesgo",
+"D":"Gestión riesgo",
 
-"VE5":"Fabricantes con BPM vigente",
+"E":"BPM",
 
-"VE6":"Lotes NO liberados por INVIMA"
+"F":"Liberación lotes"
 
 }
 
-for codigo,pregunta in VE.items():
+pesosVE={}
 
-    st.subheader(codigo)
+for letra,pregunta in VE.items():
 
-    st.write(pregunta)
-
-    with st.expander("📘 Definición"):
-
-        st.write(
-        "Definición pendiente por validar."
-        )
-
-    importancia=st.slider(
-        "Nivel importancia",
-        1,
-        5,
-        3,
-        key=f"ve_{codigo}"
+    st.subheader(
+        letra
     )
 
-    confianza=st.selectbox(
-        "Confianza",
-        [
-            "Baja",
-            "Media",
-            "Alta"
-        ],
-        key=f"confve_{codigo}"
+    st.write(
+        pregunta
     )
 
-    comentario=st.text_area(
-        "Comentario",
-        key=f"comve_{codigo}"
+    peso=st.number_input(
+
+        "Peso (%)",
+
+        min_value=0.0,
+
+        max_value=100.0,
+
+        value=0.0,
+
+        key=f"VE{letra}"
+
     )
 
-    respuestas[f"{codigo}_importancia"]=importancia
-    respuestas[f"{codigo}_confianza"]=confianza
-    respuestas[f"{codigo}_comentario"]=comentario
+    pesosVE[letra]=peso
 
 
-# =====================================
+normalVE=normalizar_pesos(
+    pesosVE
+)
+
+if normalVE:
+
+    st.subheader(
+    "⚖️ Variables Específicas normalizadas"
+    )
+
+    st.dataframe(
+
+        pd.DataFrame({
+
+            "Variable":
+            list(
+                normalVE.keys()
+            ),
+
+            "Peso":
+            list(
+                normalVE.values()
+            )
+
+        })
+
+    )
+
+
+# ======================================================
 # CRITERIOS SEVERIDAD
-# =====================================
+# ======================================================
 
-st.header("4️⃣ Criterios de Severidad")
+st.header(
+"4️⃣ Criterios de Severidad"
+)
 
-criterios=[
+criterios={
 
-"Naturaleza biológica",
-"Vía administración",
-"Dosis",
-"Grupo etario",
-"Tipo adyuvante",
-"Tipo excipientes",
-"Innovación científica",
-"Condiciones almacenamiento",
-"Calidad expediente"
+"Naturaleza biológica":[
 
+"¿La vacuna contiene microorganismos vivos capaces de replicarse?",
+
+"¿Es vacuna con subunidades proteicas?"
+],
+
+"Característica antigénica":[
+
+"¿La vacuna contiene uno o múltiples antígenos?"
+],
+
+"Vía administración":[
+
+"¿Cuál es la vía administración?",
+
+"¿Requiere reconstitución?"
+],
+
+"Dosis":[
+
+"¿Es dosis única o multidosis?"
+],
+
+"Grupo etario":[
+
+"¿Población inmune comprometida?"
+],
+
+"Tipo adyuvante":[
+
+"¿Adyuvante con riesgos reconocidos?"
+],
+
+"Tipo excipientes":[
+
+"¿Excipientes con potencial toxicidad?"
+],
+
+"Calidad":[
+
+"¿Consistencia lotes demostrada?"
 ]
 
-for criterio in criterios:
+}
 
-    st.subheader(criterio)
 
-    with st.expander("📘 Definición"):
+pesosCriterios={}
+
+dimensiones={}
+
+contador=1
+
+for dimension,lista in criterios.items():
+
+    st.subheader(
+        dimension
+    )
+
+    dimensiones[
+        dimension
+    ]=0
+
+    for criterio in lista:
 
         st.write(
-        "Definición pendiente por validar."
+            criterio
         )
 
-    importancia=st.slider(
-        "Importancia",
-        1,
-        5,
-        3,
-        key=criterio
+        peso=st.number_input(
+
+            "Peso (%)",
+
+            min_value=0.0,
+
+            max_value=100.0,
+
+            value=0.0,
+
+            key=f"criterio{contador}"
+
+        )
+
+        pesosCriterios[
+            criterio
+        ]=peso
+
+        contador+=1
+
+
+normalCrit=normalizar_pesos(
+    pesosCriterios
+)
+
+if normalCrit:
+
+    st.subheader(
+    "⚖️ Criterios normalizados"
     )
 
-    confianza=st.selectbox(
-        "Confianza",
-        [
-            "Baja",
-            "Media",
-            "Alta"
-        ],
-        key=f"conf_{criterio}"
+    tablaCrit=pd.DataFrame({
+
+        "Criterio":
+        list(
+            normalCrit.keys()
+        ),
+
+        "Peso":
+        list(
+            normalCrit.values()
+        )
+
+    })
+
+    st.dataframe(
+        tablaCrit,
+        use_container_width=True
     )
 
-    respuestas[f"{criterio}_importancia"]=importancia
-    respuestas[f"{criterio}_confianza"]=confianza
+
+    for dimension,lista in criterios.items():
+
+        total=0
+
+        for criterio in lista:
+
+            total+=normalCrit[
+                criterio
+            ]
+
+        dimensiones[
+            dimension
+        ]=round(
+            total,
+            2
+        )
 
 
-# =====================================
+    st.subheader(
+    "📊 Peso acumulado por dimensión"
+    )
+
+    tablaDim=pd.DataFrame({
+
+        "Dimensión":
+        list(
+            dimensiones.keys()
+        ),
+
+        "Peso":
+        list(
+            dimensiones.values()
+        )
+
+    })
+
+    st.dataframe(
+        tablaDim,
+        use_container_width=True
+    )
+
+
+# ======================================================
 # GUARDAR
-# =====================================
+# ======================================================
 
 st.markdown("---")
 
-if st.button("💾 Guardar evaluación"):
+if st.button(
+"💾 Guardar evaluación"
+):
 
     registro={
 
-        "fecha":datetime.now(),
-        "evaluador":evaluador,
-        "dependencia":dependencia,
-        "cargo":cargo,
-        "experiencia":experiencia
+        "fecha":
+        datetime.now(),
+
+        "evaluador":
+        evaluador,
+
+        "dependencia":
+        dependencia,
+
+        "cargo":
+        cargo,
+
+        "experiencia":
+        experiencia
 
     }
 
-    registro.update(respuestas)
 
-    df=pd.DataFrame([registro])
+    if normalVG:
 
-    guardar_respuesta(df)
+        registro.update(normalVG)
+
+    if normalVE:
+
+        registro.update(normalVE)
+
+    if normalCrit:
+
+        registro.update(normalCrit)
+
+    registro.update(
+        dimensiones
+    )
+
+    df=pd.DataFrame(
+        [registro]
+    )
+
+    guardar_respuesta(
+        df
+    )
 
     st.success(
-    "✅ Respuesta almacenada"
+        "✅ Evaluación almacenada correctamente"
     )
+
