@@ -71,32 +71,40 @@ def guardar_respuesta_local(df):
     )
 
 
-def enviar_sharepoint(registro):
+def enviar_correo(registro):
 
     try:
 
-        headers={
+        outlook = win32com.client.Dispatch(
+            "Outlook.Application"
+        )
 
-            "Content-Type":"application/json"
+        mail = outlook.CreateItem(
+            0
+        )
 
-        }
+        mail.To = "smazoz@invima.gov.co"
 
-        response=requests.post(
+        mail.Subject = "Evaluacion_IVC_SOA"
 
-            WEBHOOK,
-            json=registro,
-            headers=headers,
-            timeout=30
+        mail.Body = json.dumps(
+
+            registro,
+            ensure_ascii=False,
+            indent=4
 
         )
 
+        mail.Send()
+
         return {
 
-            "codigo":response.status_code,
+            "codigo":200,
 
-            "detalle":response.text
+            "detalle":"Correo enviado correctamente"
 
         }
+
 
     except Exception as e:
 
@@ -355,21 +363,22 @@ if st.button(
     )
 
 
-    resultado=enviar_sharepoint(
-        registro
-    )
+  resultado=enviar_correo(
+    registro
+)
 
 
     if resultado["codigo"]==200:
 
-        st.success(
-            "✅ Guardado local y enviado a SharePoint"
-        )
+    st.success(
+        "✅ Guardado local y enviado a Outlook"
+    )
 
-    else:
+else:
 
-        st.warning(
-            f"""
+    st.warning(
+
+        f"""
 ⚠ Guardado local correcto
 
 Código:
@@ -378,4 +387,5 @@ Código:
 Detalle:
 {resultado['detalle']}
 """
-        )
+
+    )
