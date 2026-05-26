@@ -1,3 +1,4 @@
+from zoneinfo import ZoneInfo
 import streamlit as st
 import pandas as pd
 import sqlite3
@@ -305,10 +306,12 @@ if st.button(
 
     registro={
 
-        "fecha":
-        datetime.now().strftime(
-            "%Y-%m-%d %H:%M:%S"
-        ),
+       "fecha":
+        datetime.now(
+    ZoneInfo("America/Bogota")
+    ).strftime(
+    "%Y-%m-%d %H:%M:%S"
+    ),
 
         "evaluador":
         evaluador,
