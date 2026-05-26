@@ -19,8 +19,9 @@ st.title(
 
 EXCEL_FILE="respuestas_ponderacion.xlsx"
 
-# PEGA TU WEBHOOK AQUÍ
-WEBHOOK="https://default270d4e26a7ea4f6f8fa0d9ffe5a93b.65.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/4c8b62a7f45e4ea1980c69f7c59755fb/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=N8nuIFTuOAmwA_CstW4PuBEUy4b-NdHQNHu2tU1a5Os"
+# WEBHOOK POWER AUTOMATE
+WEBHOOK="PEGA_AQUI_TU_URL_COMPLETA"
+
 
 # ======================================================
 # FUNCIONES
@@ -51,7 +52,9 @@ def guardar_respuesta_local(df):
 
     if archivo.exists():
 
-        viejo=pd.read_excel(EXCEL_FILE)
+        viejo=pd.read_excel(
+            EXCEL_FILE
+        )
 
         nuevo=pd.concat(
             [viejo,df],
@@ -72,19 +75,38 @@ def enviar_sharepoint(registro):
 
     try:
 
+        headers={
+
+            "Content-Type":"application/json"
+
+        }
+
         response=requests.post(
 
             WEBHOOK,
             json=registro,
+            headers=headers,
             timeout=30
 
         )
 
-        return response.status_code
+        return {
+
+            "codigo":response.status_code,
+
+            "detalle":response.text
+
+        }
 
     except Exception as e:
 
-        return str(e)
+        return {
+
+            "codigo":"ERROR",
+
+            "detalle":str(e)
+
+        }
 
 
 
@@ -135,7 +157,9 @@ de riesgo y priorización basados en riesgo.
 # VARIABLES GENERALES
 # ======================================================
 
-st.header("2️⃣ Variables generales")
+st.header(
+"2️⃣ Variables generales"
+)
 
 VG={
 
@@ -171,29 +195,32 @@ for letra,pregunta in VG.items():
 
     )
 
-normalVG=normalizar_pesos(pesosVG)
-
+normalVG=normalizar_pesos(
+    pesosVG
+)
 
 
 # ======================================================
 # VARIABLES ESPECÍFICAS
 # ======================================================
 
-st.header("3️⃣ Variables específicas")
+st.header(
+"3️⃣ Variables específicas"
+)
 
 VE={
 
 "A":"Las condiciones de almacenamiento del medicamento en el país han sido verificadas en los últimos tres años?",
 
-"B":"En las actividades de IVC, se pudo constatar que la vida útil concedida en el registro sanitario del producto terminado es la reportada?",
+"B":"En actividades de IVC se pudo constatar la vida útil reportada?",
 
-"C":"Durante acciones IVC las artes e inserto corresponden con el registro aprobado?",
+"C":"Las artes e inserto corresponden con el RS?",
 
-"D":"El expediente contiene informe de análisis y gestión de riesgo actualizado?",
+"D":"Existe informe análisis y gestión riesgo actualizado?",
 
-"E":"Los fabricantes y acondicionadores tienen BPM vigente?",
+"E":"Fabricantes y acondicionadores con BPM vigente?",
 
-"F":"¿En los últimos tres años algún lote NO ha sido liberado por INVIMA?"
+"F":"Algún lote NO fue liberado por INVIMA?"
 
 }
 
@@ -254,24 +281,16 @@ pesosSEV={}
 
 for letra,criterio in SEV.items():
 
-    st.subheader(
-        letra
-    )
+    st.subheader(letra)
 
-    st.write(
-        criterio
-    )
+    st.write(criterio)
 
     pesosSEV[letra]=st.number_input(
 
         "Peso (%)",
-
         min_value=0.0,
-
         max_value=100.0,
-
         value=0.0,
-
         key=f"SEV_{letra}"
 
     )
@@ -279,7 +298,6 @@ for letra,criterio in SEV.items():
 normalSEV=normalizar_pesos(
     pesosSEV
 )
-
 
 
 # ======================================================
@@ -294,16 +312,18 @@ if st.button(
 
     registro={
 
-        "fecha":datetime.now().strftime(
+        "fecha":
+        datetime.now().strftime(
             "%Y-%m-%d %H:%M:%S"
         ),
 
-        "evaluador":evaluador,
+        "evaluador":
+        evaluador,
 
-        "dependencia":dependencia
+        "dependencia":
+        dependencia
 
     }
-
 
     if normalVG:
 
@@ -326,8 +346,6 @@ if st.button(
             registro[f"SEV_{k}"]=v
 
 
-    # guardar local
-
     df=pd.DataFrame(
         [registro]
     )
@@ -337,14 +355,12 @@ if st.button(
     )
 
 
-    # enviar a SharePoint
-
     resultado=enviar_sharepoint(
         registro
     )
 
 
-    if resultado==200:
+    if resultado["codigo"]==200:
 
         st.success(
             "✅ Guardado local y enviado a SharePoint"
@@ -353,6 +369,13 @@ if st.button(
     else:
 
         st.warning(
-            f"⚠ Guardado local correcto pero SharePoint devolvió: {resultado}"
-        )
+            f"""
+⚠ Guardado local correcto
 
+Código:
+{resultado['codigo']}
+
+Detalle:
+{resultado['detalle']}
+"""
+        )
