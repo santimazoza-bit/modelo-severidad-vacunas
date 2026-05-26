@@ -97,12 +97,13 @@ st.header(
 
 st.info("""
 
-Este instrumento tiene como finalidad recopilar la apreciación de expertos respecto
-a la importancia relativa de variables generales, variables específicas y criterios
+Este instrumento tiene como finalidad recopilar la apreciación
+y experiencia de expertos respecto a la importancia relativa
+de variables generales, variables específicas y criterios
 de severidad asociados a vacunas.
 
-La información recopilada servirá para construcción y validación de modelos
-de riesgo y priorización basados en riesgo.
+La información será utilizada como insumo metodológico para
+el fortalecimiento de matrices de riesgo y modelos probabilísticos
 
 """)
 
