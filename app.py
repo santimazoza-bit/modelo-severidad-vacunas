@@ -18,7 +18,6 @@ st.title(
 
 EXCEL_FILE="respuestas_ponderacion.xlsx"
 
-
 # ======================================================
 # FUNCIONES
 # ======================================================
@@ -42,7 +41,6 @@ def normalizar_pesos(diccionario):
     }
 
 
-
 def guardar_respuesta(df):
 
     archivo=Path(EXCEL_FILE)
@@ -61,6 +59,7 @@ def guardar_respuesta(df):
     else:
 
         nuevo=df
+
 
     nuevo.to_excel(
         EXCEL_FILE,
@@ -143,9 +142,7 @@ pesosVG={}
 
 for letra,pregunta in VG.items():
 
-    st.subheader(
-        letra
-    )
+    st.subheader(letra)
 
     st.write(
         pregunta
@@ -161,10 +158,9 @@ for letra,pregunta in VG.items():
 
         value=0.0,
 
-        key=f"VG{letra}"
+        key=f"VG_{letra}"
 
     )
-
 
 
 normalVG=normalizar_pesos(
@@ -174,7 +170,7 @@ normalVG=normalizar_pesos(
 if normalVG:
 
     st.info(
-    f"Suma ingresada: {round(sum(pesosVG.values()),2)}%"
+        f"Suma ingresada: {round(sum(pesosVG.values()),2)}%"
     )
 
     st.dataframe(
@@ -182,14 +178,10 @@ if normalVG:
         pd.DataFrame({
 
             "Variable":
-            list(
-                normalVG.keys()
-            ),
+            list(normalVG.keys()),
 
             "Peso normalizado (%)":
-            list(
-                normalVG.values()
-            )
+            list(normalVG.values())
 
         })
 
@@ -208,15 +200,15 @@ VE={
 
 "A":"¿Las condiciones de almacenamiento del medicamento en el país han sido verificadas en los últimos tres años?",
 
-"B":"¿En las actividades de IVC, se pudo constatar que la vida útil concedida en el registro sanitario del producto terminado, es la reportada en las artes del material de envase y empaque, y en los certificados de Producto Terminado?",
+"B":"¿En las actividades de IVC, se pudo constatar que la vida útil concedida en el registro sanitario del producto terminado, es la reportada en las artes del material de envase y empaque y en los certificados de Producto Terminado?",
 
-"C":"¿Durante las acciones de IVC se encontró que las artes del material de envase y empaque y el Inserto (si lo tiene), corresponden con las que se encuentran aprobadas en el Registro Sanitario?",
+"C":"¿Durante las acciones de IVC se encontró que las artes del material de envase y empaque y el inserto corresponden con las aprobadas en el Registro Sanitario?",
 
-"D":"¿El expediente contiene el Informe de análisis y gestión del riesgo del producto en donde se evalúan las etapas de fabricación, con identificación de los riesgos y sus niveles asignados, además de las estrategias de mitigación y ha sido actualizado o revisado por cada modificación presentada por el interesado, en donde la norma de referencia lo incluya como requisito?",
+"D":"¿El expediente contiene el informe de análisis y gestión del riesgo actualizado?",
 
-"E":"¿Los roles establecidos en el Registro sanitario para fabricantes y acondicionadores se encuentran respaldados por certificación de BPM vigente nacional o internacional?",
+"E":"¿Los roles establecidos para fabricantes y acondicionadores cuentan con BPM vigente?",
 
-"F":"¿En los últimos tres (3) años algún lote de la vacuna NO ha sido liberado por el INVIMA?"
+"F":"¿En los últimos tres años algún lote NO ha sido liberado por INVIMA?"
 
 }
 
@@ -242,10 +234,9 @@ for letra,pregunta in VE.items():
 
         value=0.0,
 
-        key=f"VE{letra}"
+        key=f"VE_{letra}"
 
     )
-
 
 
 normalVE=normalizar_pesos(
@@ -255,7 +246,7 @@ normalVE=normalizar_pesos(
 if normalVE:
 
     st.info(
-    f"Suma ingresada: {round(sum(pesosVE.values()),2)}%"
+        f"Suma ingresada: {round(sum(pesosVE.values()),2)}%"
     )
 
     st.dataframe(
@@ -263,14 +254,10 @@ if normalVE:
         pd.DataFrame({
 
             "Variable":
-            list(
-                normalVE.keys()
-            ),
+            list(normalVE.keys()),
 
             "Peso normalizado (%)":
-            list(
-                normalVE.values()
-            )
+            list(normalVE.values())
 
         })
 
@@ -349,18 +336,12 @@ if normalSeveridad:
         pd.DataFrame({
 
             "Criterio":
-            list(
-                normalSeveridad.keys()
-            ),
+            list(normalSeveridad.keys()),
 
             "Peso normalizado (%)":
-            list(
-                normalSeveridad.values()
-            )
+            list(normalSeveridad.values())
 
-        }),
-
-        use_container_width=True
+        })
 
     )
 
@@ -377,25 +358,33 @@ if st.button(
 
     registro={
 
-        "fecha":
-        datetime.now(),
+        "fecha":datetime.now(),
 
-        "evaluador":
-        evaluador,
+        "evaluador":evaluador,
 
-        "dependencia":
-        dependencia
+        "dependencia":dependencia
 
     }
 
     if normalVG:
-        registro.update(normalVG)
+
+        for k,v in normalVG.items():
+
+            registro[f"VG_{k}"]=v
+
 
     if normalVE:
-        registro.update(normalVE)
+
+        for k,v in normalVE.items():
+
+            registro[f"VE_{k}"]=v
+
 
     if normalSeveridad:
-        registro.update(normalSeveridad)
+
+        for k,v in normalSeveridad.items():
+
+            registro[f"SEV_{k}"]=v
 
 
     df=pd.DataFrame(
