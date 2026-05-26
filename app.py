@@ -17,6 +17,7 @@ st.title(
 )
 
 DATABASE="respuestas.db"
+BACKUP_FILE="respuestas_backup.csv"
 
 
 # ======================================================
@@ -44,6 +45,10 @@ def normalizar_pesos(diccionario):
 
 def guardar_respuesta(df):
 
+    # ==========================
+    # Guardar en SQLite
+    # ==========================
+
     conn=sqlite3.connect(
         DATABASE
     )
@@ -62,6 +67,37 @@ def guardar_respuesta(df):
 
     conn.close()
 
+
+    # ==========================
+    # Respaldo CSV
+    # ==========================
+
+    try:
+
+        viejo=pd.read_csv(
+            BACKUP_FILE
+        )
+
+        nuevo=pd.concat(
+
+            [viejo,df],
+
+            ignore_index=True
+
+        )
+
+    except:
+
+        nuevo=df
+
+
+    nuevo.to_csv(
+
+        BACKUP_FILE,
+
+        index=False
+
+    )
 
 
 # ======================================================
@@ -103,7 +139,7 @@ de variables generales, variables específicas y criterios
 de severidad asociados a vacunas.
 
 La información será utilizada como insumo metodológico para
-el fortalecimiento de matrices de riesgo y modelos probabilísticos
+el fortalecimiento de matrices de riesgo y modelos probabilísticos.
 
 """)
 
@@ -141,11 +177,9 @@ for letra,pregunta in VG.items():
     pesosVG[letra]=st.number_input(
 
         "Peso (%)",
-
         min_value=0.0,
         max_value=100.0,
         value=0.0,
-
         key=f"VG_{letra}"
 
     )
@@ -183,13 +217,9 @@ pesosVE={}
 
 for letra,pregunta in VE.items():
 
-    st.subheader(
-        letra
-    )
+    st.subheader(letra)
 
-    st.write(
-        pregunta
-    )
+    st.write(pregunta)
 
     pesosVE[letra]=st.number_input(
 
@@ -242,13 +272,9 @@ pesosSEV={}
 
 for letra,criterio in SEV.items():
 
-    st.subheader(
-        letra
-    )
+    st.subheader(letra)
 
-    st.write(
-        criterio
-    )
+    st.write(criterio)
 
     pesosSEV[letra]=st.number_input(
 
@@ -345,35 +371,21 @@ clave=st.text_input(
 
 )
 
-
 if clave=="INVIMA2026":
 
     try:
 
-        conn=sqlite3.connect(
-            DATABASE
+        datos=pd.read_csv(
+            BACKUP_FILE
         )
-
-        datos=pd.read_sql(
-
-            "SELECT * FROM evaluaciones",
-
-            conn
-
-        )
-
-        conn.close()
-
 
         st.success(
             f"Registros encontrados: {len(datos)}"
         )
 
-
         csv=datos.to_csv(
             index=False
         )
-
 
         st.download_button(
 
