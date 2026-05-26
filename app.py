@@ -287,23 +287,23 @@ st.header(
 
 severidad=[
 
-"Naturaleza biológica / Característica antigénica",
+"A" "Naturaleza biológica / Característica antigénica",
 
-"Vía de administración",
+"B" "Vía de administración",
 
-"Dosis",
+"C" "Dosis",
 
-"Grupo etario",
+"D" "Grupo etario",
 
-"Tipo de adyuvante",
+"E" "Tipo de adyuvante",
 
-"Tipo de excipientes o aditivos",
+"F" "Tipo de excipientes o aditivos",
 
-"Innovación científica",
+"G" "Innovación científica",
 
-"Condiciones de almacenamiento",
+"H" "Condiciones de almacenamiento",
 
-"Calidad del expediente"
+"I" "Calidad del expediente"
 
 ]
 
