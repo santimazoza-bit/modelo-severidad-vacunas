@@ -285,37 +285,41 @@ st.header(
 "4️⃣ Severidad"
 )
 
-severidad=[
+SEVERIDAD={
 
-"A" "Naturaleza biológica / Característica antigénica",
+"A":"Naturaleza biológica / Característica antigénica",
 
-"B" "Vía de administración",
+"B":"Vía de administración",
 
-"C" "Dosis",
+"C":"Dosis",
 
-"D" "Grupo etario",
+"D":"Grupo etario",
 
-"E" "Tipo de adyuvante",
+"E":"Tipo de adyuvante",
 
-"F" "Tipo de excipientes o aditivos",
+"F":"Tipo de excipientes o aditivos",
 
-"G" "Innovación científica",
+"G":"Innovación científica",
 
-"H" "Condiciones de almacenamiento",
+"H":"Condiciones de almacenamiento",
 
-"I" "Calidad del expediente"
+"I":"Calidad del expediente"
 
-]
+}
 
 pesosSeveridad={}
 
-for item in severidad:
+for letra,criterio in SEVERIDAD.items():
 
-    st.write(
-        item
+    st.subheader(
+        letra
     )
 
-    pesosSeveridad[item]=st.number_input(
+    st.write(
+        criterio
+    )
+
+    pesosSeveridad[letra]=st.number_input(
 
         "Peso (%)",
 
@@ -325,7 +329,7 @@ for item in severidad:
 
         value=0.0,
 
-        key=item
+        key=f"SEV_{letra}"
 
     )
 
@@ -337,7 +341,7 @@ normalSeveridad=normalizar_pesos(
 if normalSeveridad:
 
     st.info(
-    f"Suma ingresada: {round(sum(pesosSeveridad.values()),2)}%"
+        f"Suma ingresada: {round(sum(pesosSeveridad.values()),2)}%"
     )
 
     st.dataframe(
@@ -355,7 +359,9 @@ if normalSeveridad:
             )
 
         }),
+
         use_container_width=True
+
     )
 
 
