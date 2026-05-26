@@ -25,9 +25,9 @@ BACKUP_FILE="respuestas_backup.csv"
 # TELEGRAM
 # ======================================================
 
-BOT_TOKEN="PEGA_AQUI_BOT_TOKEN"
+BOT_TOKEN="8960478807:AAEuplv6kUxxMQ-MjwyPq78CkwnEn4YBBBg"
 
-CHAT_ID="PEGA_AQUI_CHAT_ID"
+CHAT_ID="5762419749"
 
 
 # ======================================================
