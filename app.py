@@ -8,15 +8,16 @@ from datetime import datetime
 # ======================================================
 
 st.set_page_config(
-    page_title="Instrumento de Ponderación",
+    page_title="Instrumento IVC SOA",
     layout="wide"
 )
 
 st.title(
-"🧬 Instrumento de Ponderación de Variables y Criterios de Severidad"
+"🧬 Instrumento de ponderación de variables del Modelo IVC SOA y criterios de severidad del riesgo"
 )
 
 EXCEL_FILE="respuestas_ponderacion.xlsx"
+
 
 # ======================================================
 # FUNCIONES
@@ -29,7 +30,7 @@ def normalizar_pesos(diccionario):
     if suma==0:
         return None
 
-    normalizados={
+    return {
 
         k:round(
             (v/suma)*100,
@@ -40,7 +41,6 @@ def normalizar_pesos(diccionario):
 
     }
 
-    return normalizados
 
 
 def guardar_respuesta(df):
@@ -73,7 +73,7 @@ def guardar_respuesta(df):
 # ======================================================
 
 st.header(
-"1️⃣ Información evaluador"
+"1️⃣ Información del evaluador"
 )
 
 col1,col2=st.columns(2)
@@ -84,24 +84,10 @@ with col1:
         "Nombre"
     )
 
-    dependencia=st.text_input(
-        "Dependencia"
-    )
-
 with col2:
 
-    cargo=st.text_input(
-        "Cargo"
-    )
-
-    experiencia=st.selectbox(
-        "Experiencia",
-        [
-            "0-2 años",
-            "3-5 años",
-            "6-10 años",
-            ">10 años"
-        ]
+    dependencia=st.text_input(
+        "Dependencia / Cargo"
     )
 
 
@@ -110,7 +96,7 @@ with col2:
 # ======================================================
 
 st.header(
-"📘 Finalidad"
+"📘 Finalidad del instrumento"
 )
 
 st.info("""
@@ -119,13 +105,12 @@ Este instrumento tiene como finalidad recopilar la apreciación y experiencia
 de expertos respecto a la importancia relativa de variables generales,
 variables específicas y criterios de severidad asociados a vacunas.
 
-La información recopilada será utilizada como insumo metodológico para apoyar
-la construcción y fortalecimiento de matrices de riesgo y futuros modelos
-probabilísticos orientados a la priorización y evaluación basada en riesgo.
+La información recopilada servirá como insumo metodológico para la construcción,
+fortalecimiento y validación de matrices de riesgo y modelos probabilísticos
+orientados a la priorización y evaluación basada en riesgo.
 
-Las respuestas obtenidas no constituyen una evaluación individual de un
-producto o vacuna específica; corresponden a un ejercicio de percepción y
-consenso experto
+Las respuestas obtenidas no constituyen una evaluación individual de un producto
+o vacuna específica.
 
 """)
 
@@ -135,22 +120,22 @@ consenso experto
 # ======================================================
 
 st.header(
-"2️⃣ Variables Generales"
+"2️⃣ Variables generales"
 )
 
 VG={
 
-"A":"Registro suspendido",
+"A":"¿El registro sanitario ha sido suspendido en los últimos tres años?",
 
-"B":"Revisión de oficio",
+"B":"¿El registro sanitario ha sido llamado a revisión de oficio en los últimos tres años?",
 
-"C":"Alertas sanitarias",
+"C":"¿El registro sanitario ha tenido alertas sanitarias en los últimos tres años?",
 
-"D":"Eventos adversos graves",
+"D":"¿El registro sanitario ha tenido eventos adversos graves en los últimos tres años?",
 
-"E":"Responsabilidad sanitaria",
+"E":"¿El medicamento ha tenido o tiene algún proceso en Responsabilidad Sanitaria en los últimos tres años?",
 
-"F":"Desabastecimiento"
+"F":"¿El medicamento presentó riesgo desabastecimiento en los últimos tres años?"
 
 }
 
@@ -158,11 +143,15 @@ pesosVG={}
 
 for letra,pregunta in VG.items():
 
-    st.subheader(letra)
+    st.subheader(
+        letra
+    )
 
-    st.write(pregunta)
+    st.write(
+        pregunta
+    )
 
-    peso=st.number_input(
+    pesosVG[letra]=st.number_input(
 
         "Peso (%)",
 
@@ -176,7 +165,6 @@ for letra,pregunta in VG.items():
 
     )
 
-    pesosVG[letra]=peso
 
 
 normalVG=normalizar_pesos(
@@ -185,11 +173,12 @@ normalVG=normalizar_pesos(
 
 if normalVG:
 
-    st.subheader(
-    "⚖️ Variables Generales normalizadas"
+    st.info(
+    f"Suma ingresada: {round(sum(pesosVG.values()),2)}%"
     )
 
     st.dataframe(
+
         pd.DataFrame({
 
             "Variable":
@@ -197,12 +186,13 @@ if normalVG:
                 normalVG.keys()
             ),
 
-            "Peso":
+            "Peso normalizado (%)":
             list(
                 normalVG.values()
             )
 
         })
+
     )
 
 
@@ -211,22 +201,22 @@ if normalVG:
 # ======================================================
 
 st.header(
-"3️⃣ Variables Específicas"
+"3️⃣ Variables específicas"
 )
 
 VE={
 
-"A":"Condiciones almacenamiento",
+"A":"Las condiciones de almacenamiento del medicamento en el país han sido verificadas en los últimos tres años?",
 
-"B":"Vida útil",
+"B":"En actividades IVC se constató que la vida útil corresponde con artes y certificados?",
 
-"C":"Artes e inserto",
+"C":"Durante acciones IVC las artes e inserto corresponden con el Registro Sanitario aprobado?",
 
-"D":"Gestión riesgo",
+"D":"El expediente contiene informe de análisis y gestión de riesgo actualizado?",
 
-"E":"BPM",
+"E":"Los fabricantes y acondicionadores cuentan con BPM vigente?",
 
-"F":"Liberación lotes"
+"F":"En los últimos tres años algún lote NO ha sido liberado por INVIMA?"
 
 }
 
@@ -242,7 +232,7 @@ for letra,pregunta in VE.items():
         pregunta
     )
 
-    peso=st.number_input(
+    pesosVE[letra]=st.number_input(
 
         "Peso (%)",
 
@@ -256,7 +246,6 @@ for letra,pregunta in VE.items():
 
     )
 
-    pesosVE[letra]=peso
 
 
 normalVE=normalizar_pesos(
@@ -265,8 +254,8 @@ normalVE=normalizar_pesos(
 
 if normalVE:
 
-    st.subheader(
-    "⚖️ Variables Específicas normalizadas"
+    st.info(
+    f"Suma ingresada: {round(sum(pesosVE.values()),2)}%"
     )
 
     st.dataframe(
@@ -278,7 +267,7 @@ if normalVE:
                 normalVE.keys()
             ),
 
-            "Peso":
+            "Peso normalizado (%)":
             list(
                 normalVE.values()
             )
@@ -289,173 +278,83 @@ if normalVE:
 
 
 # ======================================================
-# CRITERIOS SEVERIDAD
+# SEVERIDAD
 # ======================================================
 
 st.header(
-"4️⃣ Criterios de Severidad"
+"4️⃣ Severidad"
 )
 
-criterios={
+severidad=[
 
-"Naturaleza biológica":[
+"Naturaleza biológica / Característica antigénica",
 
-"¿La vacuna contiene microorganismos vivos capaces de replicarse?",
+"Vía de administración",
 
-"¿Es vacuna con subunidades proteicas?"
-],
+"Dosis",
 
-"Característica antigénica":[
+"Grupo etario",
 
-"¿La vacuna contiene uno o múltiples antígenos?"
-],
+"Tipo de adyuvante",
 
-"Vía administración":[
+"Tipo de excipientes o aditivos",
 
-"¿Cuál es la vía administración?",
+"Innovación científica",
 
-"¿Requiere reconstitución?"
-],
+"Condiciones de almacenamiento",
 
-"Dosis":[
+"Calidad del expediente"
 
-"¿Es dosis única o multidosis?"
-],
-
-"Grupo etario":[
-
-"¿Población inmune comprometida?"
-],
-
-"Tipo adyuvante":[
-
-"¿Adyuvante con riesgos reconocidos?"
-],
-
-"Tipo excipientes":[
-
-"¿Excipientes con potencial toxicidad?"
-],
-
-"Calidad":[
-
-"¿Consistencia lotes demostrada?"
 ]
 
-}
+pesosSeveridad={}
 
+for item in severidad:
 
-pesosCriterios={}
-
-dimensiones={}
-
-contador=1
-
-for dimension,lista in criterios.items():
-
-    st.subheader(
-        dimension
+    st.write(
+        item
     )
 
-    dimensiones[
-        dimension
-    ]=0
+    pesosSeveridad[item]=st.number_input(
 
-    for criterio in lista:
+        "Peso (%)",
 
-        st.write(
-            criterio
-        )
+        min_value=0.0,
 
-        peso=st.number_input(
+        max_value=100.0,
 
-            "Peso (%)",
+        value=0.0,
 
-            min_value=0.0,
+        key=item
 
-            max_value=100.0,
-
-            value=0.0,
-
-            key=f"criterio{contador}"
-
-        )
-
-        pesosCriterios[
-            criterio
-        ]=peso
-
-        contador+=1
+    )
 
 
-normalCrit=normalizar_pesos(
-    pesosCriterios
+normalSeveridad=normalizar_pesos(
+    pesosSeveridad
 )
 
-if normalCrit:
+if normalSeveridad:
 
-    st.subheader(
-    "⚖️ Criterios normalizados"
+    st.info(
+    f"Suma ingresada: {round(sum(pesosSeveridad.values()),2)}%"
     )
-
-    tablaCrit=pd.DataFrame({
-
-        "Criterio":
-        list(
-            normalCrit.keys()
-        ),
-
-        "Peso":
-        list(
-            normalCrit.values()
-        )
-
-    })
 
     st.dataframe(
-        tablaCrit,
-        use_container_width=True
-    )
 
+        pd.DataFrame({
 
-    for dimension,lista in criterios.items():
+            "Criterio":
+            list(
+                normalSeveridad.keys()
+            ),
 
-        total=0
+            "Peso normalizado (%)":
+            list(
+                normalSeveridad.values()
+            )
 
-        for criterio in lista:
-
-            total+=normalCrit[
-                criterio
-            ]
-
-        dimensiones[
-            dimension
-        ]=round(
-            total,
-            2
-        )
-
-
-    st.subheader(
-    "📊 Peso acumulado por dimensión"
-    )
-
-    tablaDim=pd.DataFrame({
-
-        "Dimensión":
-        list(
-            dimensiones.keys()
-        ),
-
-        "Peso":
-        list(
-            dimensiones.values()
-        )
-
-    })
-
-    st.dataframe(
-        tablaDim,
+        }),
         use_container_width=True
     )
 
@@ -479,32 +378,19 @@ if st.button(
         evaluador,
 
         "dependencia":
-        dependencia,
-
-        "cargo":
-        cargo,
-
-        "experiencia":
-        experiencia
+        dependencia
 
     }
 
-
     if normalVG:
-
         registro.update(normalVG)
 
     if normalVE:
-
         registro.update(normalVE)
 
-    if normalCrit:
+    if normalSeveridad:
+        registro.update(normalSeveridad)
 
-        registro.update(normalCrit)
-
-    registro.update(
-        dimensiones
-    )
 
     df=pd.DataFrame(
         [registro]
@@ -517,4 +403,5 @@ if st.button(
     st.success(
         "✅ Evaluación almacenada correctamente"
     )
+    
 
