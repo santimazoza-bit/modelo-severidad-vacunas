@@ -208,7 +208,7 @@ VE={
 
 "A":"¿Las condiciones de almacenamiento del medicamento en el país han sido verificadas en los últimos tres años?",
 
-"B":"¿En las actividades de IVC, se pudo constatar que la vida útil concedida en el registro sanitario del producto terminado, es la reportada en las artes del material de envase y empaque, y en los certificados de Producto Terminado??",
+"B":"¿En las actividades de IVC, se pudo constatar que la vida útil concedida en el registro sanitario del producto terminado, es la reportada en las artes del material de envase y empaque, y en los certificados de Producto Terminado?",
 
 "C":"¿Durante las acciones de IVC se encontró que las artes del material de envase y empaque y el Inserto (si lo tiene), corresponden con las que se encuentran aprobadas en el Registro Sanitario?",
 
