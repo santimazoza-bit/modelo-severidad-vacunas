@@ -164,17 +164,17 @@ st.header(
 
 VE={
 
-"A":"Las condiciones de almacenamiento del medicamento en el país han sido verificadas en los últimos tres años?",
+"A":"¿Las condiciones de almacenamiento del medicamento en el país han sido verificadas en los últimos tres años?",
 
-"B":"En las actividades de IVC se pudo constatar la vida útil reportada?",
+"B":"¿En las actividades de IVC se pudo constatar la vida útil reportada?",
 
-"C":"Las artes e inserto corresponden con el Registro Sanitario aprobado?",
+"C":"¿Las artes e inserto corresponden con el Registro Sanitario aprobado?",
 
-"D":"Existe informe análisis y gestión riesgo actualizado?",
+"D":"¿Existe informe análisis y gestión riesgo actualizado?",
 
-"E":"Fabricantes y acondicionadores con BPM vigente?",
+"E":"¿Fabricantes y acondicionadores con BPM vigente?",
 
-"F":"Algún lote NO fue liberado por INVIMA?"
+"F":"¿Algún lote NO fue liberado por INVIMA?"
 
 }
 
