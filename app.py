@@ -1,8 +1,7 @@
 import streamlit as st
 import pandas as pd
-from pathlib import Path
+import sqlite3
 from datetime import datetime
-import requests
 
 # ======================================================
 # CONFIGURACIÓN
@@ -17,10 +16,7 @@ st.title(
 "🧬 Instrumento de ponderación de variables del Modelo IVC SOA y criterios de severidad del riesgo"
 )
 
-EXCEL_FILE="respuestas_ponderacion.xlsx"
-
-# WEBHOOK POWER AUTOMATE
-WEBHOOK="https://default270d4e26a7ea4f6f8fa0d9ffe5a93b.65.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/b5ca93f06cbd4c3aa980d5359efca24b/triggers/manual/paths/invoke?api-version=1"
+DATABASE="respuestas.db"
 
 
 # ======================================================
@@ -46,75 +42,25 @@ def normalizar_pesos(diccionario):
     }
 
 
-def guardar_respuesta_local(df):
+def guardar_respuesta(df):
 
-    archivo=Path(EXCEL_FILE)
-
-    if archivo.exists():
-
-        viejo=pd.read_excel(
-            EXCEL_FILE
-        )
-
-        nuevo=pd.concat(
-            [viejo,df],
-            ignore_index=True
-        )
-
-    else:
-
-        nuevo=df
-
-    nuevo.to_excel(
-        EXCEL_FILE,
-        index=False
+    conn=sqlite3.connect(
+        DATABASE
     )
 
+    df.to_sql(
 
-def enviar_correo(registro):
+        "evaluaciones",
 
-    try:
+        conn,
 
-        outlook = win32com.client.Dispatch(
-            "Outlook.Application"
-        )
+        if_exists="append",
 
-        mail = outlook.CreateItem(
-            0
-        )
+        index=False
 
-        mail.To = "smazoz@invima.gov.co"
+    )
 
-        mail.Subject = "Evaluacion_IVC_SOA"
-
-        mail.Body = json.dumps(
-
-            registro,
-            ensure_ascii=False,
-            indent=4
-
-        )
-
-        mail.Send()
-
-        return {
-
-            "codigo":200,
-
-            "detalle":"Correo enviado correctamente"
-
-        }
-
-
-    except Exception as e:
-
-        return {
-
-            "codigo":"ERROR",
-
-            "detalle":str(e)
-
-        }
+    conn.close()
 
 
 
@@ -151,9 +97,9 @@ st.header(
 
 st.info("""
 
-Este instrumento tiene como finalidad recopilar la apreciación y experiencia
-de expertos respecto a la importancia relativa de variables generales,
-variables específicas y criterios de severidad asociados a vacunas.
+Este instrumento tiene como finalidad recopilar la apreciación de expertos respecto
+a la importancia relativa de variables generales, variables específicas y criterios
+de severidad asociados a vacunas.
 
 La información recopilada servirá para construcción y validación de modelos
 de riesgo y priorización basados en riesgo.
@@ -165,9 +111,7 @@ de riesgo y priorización basados en riesgo.
 # VARIABLES GENERALES
 # ======================================================
 
-st.header(
-"2️⃣ Variables generales"
-)
+st.header("2️⃣ Variables generales")
 
 VG={
 
@@ -196,9 +140,11 @@ for letra,pregunta in VG.items():
     pesosVG[letra]=st.number_input(
 
         "Peso (%)",
+
         min_value=0.0,
         max_value=100.0,
         value=0.0,
+
         key=f"VG_{letra}"
 
     )
@@ -220,9 +166,9 @@ VE={
 
 "A":"Las condiciones de almacenamiento del medicamento en el país han sido verificadas en los últimos tres años?",
 
-"B":"En actividades de IVC se pudo constatar la vida útil reportada?",
+"B":"En las actividades de IVC se pudo constatar la vida útil reportada?",
 
-"C":"Las artes e inserto corresponden con el RS?",
+"C":"Las artes e inserto corresponden con el Registro Sanitario aprobado?",
 
 "D":"Existe informe análisis y gestión riesgo actualizado?",
 
@@ -236,16 +182,22 @@ pesosVE={}
 
 for letra,pregunta in VE.items():
 
-    st.subheader(letra)
+    st.subheader(
+        letra
+    )
 
-    st.write(pregunta)
+    st.write(
+        pregunta
+    )
 
     pesosVE[letra]=st.number_input(
 
         "Peso (%)",
+
         min_value=0.0,
         max_value=100.0,
         value=0.0,
+
         key=f"VE_{letra}"
 
     )
@@ -289,16 +241,22 @@ pesosSEV={}
 
 for letra,criterio in SEV.items():
 
-    st.subheader(letra)
+    st.subheader(
+        letra
+    )
 
-    st.write(criterio)
+    st.write(
+        criterio
+    )
 
     pesosSEV[letra]=st.number_input(
 
         "Peso (%)",
+
         min_value=0.0,
         max_value=100.0,
         value=0.0,
+
         key=f"SEV_{letra}"
 
     )
@@ -333,6 +291,7 @@ if st.button(
 
     }
 
+
     if normalVG:
 
         for k,v in normalVG.items():
@@ -358,34 +317,77 @@ if st.button(
         [registro]
     )
 
-    guardar_respuesta_local(
+    guardar_respuesta(
         df
     )
 
+    st.success(
+        "✅ Evaluación almacenada correctamente"
+    )
 
-  resultado=enviar_correo(
-    registro
+
+# ======================================================
+# DESCARGA ADMIN
+# ======================================================
+
+st.markdown("---")
+
+st.header(
+"📥 Administración"
+)
+
+clave=st.text_input(
+
+    "Clave administrador",
+
+    type="password"
+
 )
 
 
-    if resultado["codigo"]==200:
+if clave=="INVIMA2026":
 
-    st.success(
-        "✅ Guardado local y enviado a Outlook"
-    )
+    try:
 
-else:
+        conn=sqlite3.connect(
+            DATABASE
+        )
 
-    st.warning(
+        datos=pd.read_sql(
 
-        f"""
-⚠ Guardado local correcto
+            "SELECT * FROM evaluaciones",
 
-Código:
-{resultado['codigo']}
+            conn
 
-Detalle:
-{resultado['detalle']}
-"""
+        )
 
-    )
+        conn.close()
+
+
+        st.success(
+            f"Registros encontrados: {len(datos)}"
+        )
+
+
+        csv=datos.to_csv(
+            index=False
+        )
+
+
+        st.download_button(
+
+            label="📥 Descargar respuestas CSV",
+
+            data=csv,
+
+            file_name="respuestas.csv",
+
+            mime="text/csv"
+
+        )
+
+    except:
+
+        st.warning(
+            "Aún no existen respuestas"
+        )
