@@ -135,7 +135,7 @@ VG={
 
 "E":"¿El medicamento ha tenido o tiene algún proceso en Responsabilidad Sanitaria en los últimos tres años?",
 
-"F":"¿El medicamento presentó riesgo desabastecimiento en los últimos tres años?"
+"F":"¿El medicamento presentó riesgo de desabastecimiento en los últimos tres años?"
 
 }
 
