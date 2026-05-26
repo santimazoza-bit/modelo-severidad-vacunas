@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from pathlib import Path
 from datetime import datetime
+import requests
 
 # ======================================================
 # CONFIGURACIÓN
@@ -17,6 +18,9 @@ st.title(
 )
 
 EXCEL_FILE="respuestas_ponderacion.xlsx"
+
+# PEGA TU WEBHOOK AQUÍ
+WEBHOOK="https://default270d4e26a7ea4f6f8fa0d9ffe5a93b.65.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/4c8b62a7f45e4ea1980c69f7c59755fb/triggers/manual/paths/invoke?api-version=1"
 
 # ======================================================
 # FUNCIONES
@@ -41,15 +45,13 @@ def normalizar_pesos(diccionario):
     }
 
 
-def guardar_respuesta(df):
+def guardar_respuesta_local(df):
 
     archivo=Path(EXCEL_FILE)
 
     if archivo.exists():
 
-        viejo=pd.read_excel(
-            EXCEL_FILE
-        )
+        viejo=pd.read_excel(EXCEL_FILE)
 
         nuevo=pd.concat(
             [viejo,df],
@@ -60,11 +62,30 @@ def guardar_respuesta(df):
 
         nuevo=df
 
-
     nuevo.to_excel(
         EXCEL_FILE,
         index=False
     )
+
+
+def enviar_sharepoint(registro):
+
+    try:
+
+        response=requests.post(
+
+            WEBHOOK,
+            json=registro,
+            timeout=30
+
+        )
+
+        return response.status_code
+
+    except Exception as e:
+
+        return str(e)
+
 
 
 # ======================================================
@@ -95,7 +116,7 @@ with col2:
 # ======================================================
 
 st.header(
-"📘 Finalidad del instrumento"
+"📘 Finalidad"
 )
 
 st.info("""
@@ -104,12 +125,8 @@ Este instrumento tiene como finalidad recopilar la apreciación y experiencia
 de expertos respecto a la importancia relativa de variables generales,
 variables específicas y criterios de severidad asociados a vacunas.
 
-La información recopilada servirá como insumo metodológico para la construcción,
-fortalecimiento y validación de matrices de riesgo y modelos probabilísticos
-orientados a la priorización y evaluación basada en riesgo.
-
-Las respuestas obtenidas no constituyen una evaluación individual de un producto
-o vacuna específica.
+La información recopilada servirá para construcción y validación de modelos
+de riesgo y priorización basados en riesgo.
 
 """)
 
@@ -118,9 +135,7 @@ o vacuna específica.
 # VARIABLES GENERALES
 # ======================================================
 
-st.header(
-"2️⃣ Variables generales"
-)
+st.header("2️⃣ Variables generales")
 
 VG={
 
@@ -144,69 +159,39 @@ for letra,pregunta in VG.items():
 
     st.subheader(letra)
 
-    st.write(
-        pregunta
-    )
+    st.write(pregunta)
 
     pesosVG[letra]=st.number_input(
 
         "Peso (%)",
-
         min_value=0.0,
-
         max_value=100.0,
-
         value=0.0,
-
         key=f"VG_{letra}"
 
     )
 
+normalVG=normalizar_pesos(pesosVG)
 
-normalVG=normalizar_pesos(
-    pesosVG
-)
-
-if normalVG:
-
-    st.info(
-        f"Suma ingresada: {round(sum(pesosVG.values()),2)}%"
-    )
-
-    st.dataframe(
-
-        pd.DataFrame({
-
-            "Variable":
-            list(normalVG.keys()),
-
-            "Peso normalizado (%)":
-            list(normalVG.values())
-
-        })
-
-    )
 
 
 # ======================================================
 # VARIABLES ESPECÍFICAS
 # ======================================================
 
-st.header(
-"3️⃣ Variables específicas"
-)
+st.header("3️⃣ Variables específicas")
 
 VE={
 
-"A":"¿Las condiciones de almacenamiento del medicamento en el país han sido verificadas en los últimos tres años?",
+"A":"Las condiciones de almacenamiento del medicamento en el país han sido verificadas en los últimos tres años?",
 
-"B":"¿En las actividades de IVC, se pudo constatar que la vida útil concedida en el registro sanitario del producto terminado, es la reportada en las artes del material de envase y empaque y en los certificados de Producto Terminado?",
+"B":"En las actividades de IVC, se pudo constatar que la vida útil concedida en el registro sanitario del producto terminado es la reportada?",
 
-"C":"¿Durante las acciones de IVC se encontró que las artes del material de envase y empaque y el inserto corresponden con las aprobadas en el Registro Sanitario?",
+"C":"Durante acciones IVC las artes e inserto corresponden con el registro aprobado?",
 
-"D":"¿El expediente contiene el informe de análisis y gestión del riesgo actualizado?",
+"D":"El expediente contiene informe de análisis y gestión de riesgo actualizado?",
 
-"E":"¿Los roles establecidos para fabricantes y acondicionadores cuentan con BPM vigente?",
+"E":"Los fabricantes y acondicionadores tienen BPM vigente?",
 
 "F":"¿En los últimos tres años algún lote NO ha sido liberado por INVIMA?"
 
@@ -216,52 +201,23 @@ pesosVE={}
 
 for letra,pregunta in VE.items():
 
-    st.subheader(
-        letra
-    )
+    st.subheader(letra)
 
-    st.write(
-        pregunta
-    )
+    st.write(pregunta)
 
     pesosVE[letra]=st.number_input(
 
         "Peso (%)",
-
         min_value=0.0,
-
         max_value=100.0,
-
         value=0.0,
-
         key=f"VE_{letra}"
 
     )
 
-
 normalVE=normalizar_pesos(
     pesosVE
 )
-
-if normalVE:
-
-    st.info(
-        f"Suma ingresada: {round(sum(pesosVE.values()),2)}%"
-    )
-
-    st.dataframe(
-
-        pd.DataFrame({
-
-            "Variable":
-            list(normalVE.keys()),
-
-            "Peso normalizado (%)":
-            list(normalVE.values())
-
-        })
-
-    )
 
 
 # ======================================================
@@ -272,7 +228,7 @@ st.header(
 "4️⃣ Severidad"
 )
 
-SEVERIDAD={
+SEV={
 
 "A":"Naturaleza biológica / Característica antigénica",
 
@@ -294,9 +250,9 @@ SEVERIDAD={
 
 }
 
-pesosSeveridad={}
+pesosSEV={}
 
-for letra,criterio in SEVERIDAD.items():
+for letra,criterio in SEV.items():
 
     st.subheader(
         letra
@@ -306,7 +262,7 @@ for letra,criterio in SEVERIDAD.items():
         criterio
     )
 
-    pesosSeveridad[letra]=st.number_input(
+    pesosSEV[letra]=st.number_input(
 
         "Peso (%)",
 
@@ -320,30 +276,10 @@ for letra,criterio in SEVERIDAD.items():
 
     )
 
-
-normalSeveridad=normalizar_pesos(
-    pesosSeveridad
+normalSEV=normalizar_pesos(
+    pesosSEV
 )
 
-if normalSeveridad:
-
-    st.info(
-        f"Suma ingresada: {round(sum(pesosSeveridad.values()),2)}%"
-    )
-
-    st.dataframe(
-
-        pd.DataFrame({
-
-            "Criterio":
-            list(normalSeveridad.keys()),
-
-            "Peso normalizado (%)":
-            list(normalSeveridad.values())
-
-        })
-
-    )
 
 
 # ======================================================
@@ -358,13 +294,16 @@ if st.button(
 
     registro={
 
-        "fecha":datetime.now(),
+        "fecha":datetime.now().strftime(
+            "%Y-%m-%d %H:%M:%S"
+        ),
 
         "evaluador":evaluador,
 
         "dependencia":dependencia
 
     }
+
 
     if normalVG:
 
@@ -380,23 +319,40 @@ if st.button(
             registro[f"VE_{k}"]=v
 
 
-    if normalSeveridad:
+    if normalSEV:
 
-        for k,v in normalSeveridad.items():
+        for k,v in normalSEV.items():
 
             registro[f"SEV_{k}"]=v
 
+
+    # guardar local
 
     df=pd.DataFrame(
         [registro]
     )
 
-    guardar_respuesta(
+    guardar_respuesta_local(
         df
     )
 
-    st.success(
-        "✅ Evaluación almacenada correctamente"
+
+    # enviar a SharePoint
+
+    resultado=enviar_sharepoint(
+        registro
     )
-    
+
+
+    if resultado==200:
+
+        st.success(
+            "✅ Guardado local y enviado a SharePoint"
+        )
+
+    else:
+
+        st.warning(
+            f"⚠ Guardado local correcto pero SharePoint devolvió: {resultado}"
+        )
 
