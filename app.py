@@ -208,15 +208,15 @@ VE={
 
 "A":"¿Las condiciones de almacenamiento del medicamento en el país han sido verificadas en los últimos tres años?",
 
-"B":"¿En actividades IVC se constató que la vida útil corresponde con artes y certificados?",
+"B":"¿En las actividades de IVC, se pudo constatar que la vida útil concedida en el registro sanitario del producto terminado, es la reportada en las artes del material de envase y empaque, y en los certificados de Producto Terminado??",
 
-"C":"¿Durante acciones IVC las artes e inserto corresponden con el Registro Sanitario aprobado?",
+"C":"¿Durante las acciones de IVC se encontró que las artes del material de envase y empaque y el Inserto (si lo tiene), corresponden con las que se encuentran aprobadas en el Registro Sanitario?",
 
-"D":"¿El expediente contiene informe de análisis y gestión de riesgo actualizado?",
+"D":"¿El expediente contiene el Informe de análisis y gestión del riesgo del producto en donde se evalúan las etapas de fabricación, con identificación de los riesgos y sus niveles asignados, además de las estrategias de mitigación y ha sido actualizado o revisado por cada modificación presentada por el interesado, en donde la norma de referencia lo incluya como requisito?",
 
-"E":"¿Los fabricantes y acondicionadores cuentan con BPM vigente?",
+"E":"¿Los roles establecidos en el Registro sanitario para fabricantes y acondicionadores se encuentran respaldados por certificación de BPM vigente nacional o internacional?",
 
-"F":"¿En los últimos tres años algún lote NO ha sido liberado por INVIMA?"
+"F":"¿En los últimos tres (3) años algún lote de la vacuna NO ha sido liberado por el INVIMA?"
 
 }
 
