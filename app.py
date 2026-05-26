@@ -3,6 +3,7 @@ import streamlit as st
 import pandas as pd
 import sqlite3
 from datetime import datetime
+import requests
 
 # ======================================================
 # CONFIGURACIÓN
@@ -19,6 +20,14 @@ st.title(
 
 DATABASE="respuestas.db"
 BACKUP_FILE="respuestas_backup.csv"
+
+# ======================================================
+# TELEGRAM
+# ======================================================
+
+BOT_TOKEN="PEGA_AQUI_BOT_TOKEN"
+
+CHAT_ID="PEGA_AQUI_CHAT_ID"
 
 
 # ======================================================
@@ -47,7 +56,7 @@ def normalizar_pesos(diccionario):
 def guardar_respuesta(df):
 
     # ==========================
-    # Guardar en SQLite
+    # Guardar SQLite
     # ==========================
 
     conn=sqlite3.connect(
@@ -70,7 +79,7 @@ def guardar_respuesta(df):
 
 
     # ==========================
-    # Respaldo CSV
+    # Backup CSV
     # ==========================
 
     try:
@@ -99,6 +108,45 @@ def guardar_respuesta(df):
         index=False
 
     )
+
+
+def enviar_telegram(registro):
+
+    try:
+
+        mensaje=f"""
+
+🧬 Nueva evaluación recibida
+
+👤 Evaluador:
+{registro['evaluador']}
+
+🏢 Dependencia:
+{registro['dependencia']}
+
+🕒 Fecha:
+{registro['fecha']}
+
+"""
+
+        url=f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+
+        payload={
+
+            "chat_id":CHAT_ID,
+
+            "text":mensaje
+
+        }
+
+        requests.post(
+            url,
+            data=payload
+        )
+
+    except:
+
+        pass
 
 
 # ======================================================
@@ -178,9 +226,11 @@ for letra,pregunta in VG.items():
     pesosVG[letra]=st.number_input(
 
         "Peso (%)",
+
         min_value=0.0,
         max_value=100.0,
         value=0.0,
+
         key=f"VG_{letra}"
 
     )
@@ -204,13 +254,13 @@ VE={
 
 "B":"¿En las actividades de IVC, se pudo constatar que la vida útil concedida en el registro sanitario del producto terminado, es la reportada en las artes del material de envase y empaque, y en los certificados de Producto Terminado?",
 
-"C":"¿Durante las acciones de IVC se encontró que las artes del material de envase y empaque y el Inserto, (si lo tiene), corresponden con las que se encuentran aprobadas  en el Registro Sanitario?",
+"C":"¿Durante las acciones de IVC se encontró que las artes del material de envase y empaque y el Inserto, corresponden con las que se encuentran aprobadas en el Registro Sanitario?",
 
-"D":"¿El expediente contiene el Informe de análisis y gestión del riesgo del producto en donde se evalúan las etapas de fabricación, con identificación de los riesgos y sus niveles asignados, además de las estrategias de mitigación y ha sido actualizado o revisado por cada modificación presentada por el interesado, en donde la norma de referencia lo incluya como requisito?",
+"D":"¿El expediente contiene el Informe de análisis y gestión del riesgo del producto?",
 
-"E":"¿Los roles establecidos en el Registro sanitario para fabricantes y acondicionadores se encuentran respaldados por certificacion de BPM vigente nacional o internacional?",
+"E":"¿Los fabricantes y acondicionadores cuentan con certificación BPM vigente?",
 
-"F":"¿En los últimos tres (3) años algún lote de la vacuna NO ha sido liberado por el INVIMA?"
+"F":"¿En los últimos tres años algún lote de la vacuna NO ha sido liberado por INVIMA?"
 
 }
 
@@ -306,12 +356,12 @@ if st.button(
 
     registro={
 
-       "fecha":
+        "fecha":
         datetime.now(
-    ZoneInfo("America/Bogota")
-    ).strftime(
-    "%Y-%m-%d %H:%M:%S"
-    ),
+            ZoneInfo("America/Bogota")
+        ).strftime(
+            "%Y-%m-%d %H:%M:%S"
+        ),
 
         "evaluador":
         evaluador,
@@ -349,6 +399,10 @@ if st.button(
 
     guardar_respuesta(
         df
+    )
+
+    enviar_telegram(
+        registro
     )
 
     st.success(
