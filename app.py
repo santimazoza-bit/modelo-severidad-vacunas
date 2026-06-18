@@ -4,9 +4,6 @@ import pandas as pd
 import sqlite3
 from datetime import datetime
 import requests
-import gspread
-
-from google.oauth2.service_account import Credentials
 
 # ======================================================
 # CONFIGURACIÓN
@@ -23,37 +20,6 @@ st.title(
 
 DATABASE="respuestas.db"
 BACKUP_FILE="respuestas_backup.csv"
-# ======================================================
-# GOOGLE SHEETS
-# ======================================================
-
-SCOPES=[
-
-    "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/drive"
-
-]
-
-
-credenciales=Credentials.from_service_account_file(
-
-    "streamlit-ivc-soa-e57fe95e2c70.json",
-
-    scopes=SCOPES
-
-)
-
-
-cliente=gspread.authorize(
-    credenciales
-)
-
-
-sheet=cliente.open(
-
-    "Respuestas_IVC_SOA"
-
-).sheet1
 
 # ======================================================
 # TELEGRAM
@@ -85,45 +51,6 @@ def normalizar_pesos(diccionario):
         for k,v in diccionario.items()
 
     }
-
-
-def guardar_google(registro):
-
-    fila=[
-
-        registro.get("fecha"),
-        registro.get("evaluador"),
-        registro.get("dependencia"),
-
-        registro.get("VG_A"),
-        registro.get("VG_B"),
-        registro.get("VG_C"),
-        registro.get("VG_D"),
-        registro.get("VG_E"),
-        registro.get("VG_F"),
-
-        registro.get("VE_A"),
-        registro.get("VE_B"),
-        registro.get("VE_C"),
-        registro.get("VE_D"),
-        registro.get("VE_E"),
-        registro.get("VE_F"),
-
-        registro.get("SEV_A"),
-        registro.get("SEV_B"),
-        registro.get("SEV_C"),
-        registro.get("SEV_D"),
-        registro.get("SEV_E"),
-        registro.get("SEV_F"),
-        registro.get("SEV_G"),
-        registro.get("SEV_H"),
-        registro.get("SEV_I")
-
-    ]
-
-    sheet.append_row(
-        fila
-    )
 
 
 def guardar_respuesta(df):
@@ -473,9 +400,6 @@ if st.button(
     guardar_respuesta(
         df
     )
-    guardar_google(
-    registro
-)
 
     enviar_telegram(
         registro
