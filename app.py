@@ -87,8 +87,7 @@ def normalizar_pesos(diccionario):
     }
 
 
-def guardar_respuesta(df):
-    def guardar_google(registro):
+def guardar_google(registro):
 
     fila=[
 
@@ -122,10 +121,12 @@ def guardar_respuesta(df):
 
     ]
 
-
     sheet.append_row(
         fila
     )
+
+
+def guardar_respuesta(df):
 
     # ==========================
     # Guardar SQLite
